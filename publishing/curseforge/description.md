@@ -12,6 +12,7 @@ This is an **early alpha for Minecraft 1.20.1 Forge**.
 - Route recalculation after a missed turn.
 - Road recording by driving, with two-way and one-way roads and connections at intersections.
 - A configurable physical dashboard screen and a calibration grid.
+- Optional villager traffic driving random Official Pack Mercedes, Mustang and Scout cars along recorded roads.
 
 Routes follow **roads you have recorded**. Record a connected network first; the addon does not generate roads or use Minecraft walking paths. Height checks help keep bridges separate from roads below them. Matching uses the vehicle's internal name, so all merc230 paint variants are included.
 
@@ -35,9 +36,17 @@ MTS GPS is a separate addon. It does not include or replace either required mod.
 5. Choose **Record roads**, close the menu, and drive a small road network. Stop recording when finished. Use **Join junction** to connect nearby road segments at an intersection.
 6. Give a destination a name and choose **Save car here**, or click the map and choose **Save map pin**. Select the saved entry and choose **Navigate saved**.
 
-Only the driver can record roads. Recording stops when leaving the car or after a large movement gap. Roads and destinations are saved locally for each world/server and dimension; they are not shared between players.
+Only the driver can record roads. Recording stops when leaving the car or after a large movement gap. Roads and destinations are saved locally for each world/server and dimension.
 
-Configuration is stored in `config/mtsgps-client.toml`. Recorded roads and destinations are in `config/mtsgps/data`.
+## Villager traffic
+
+After recording a connected road and stopping recording, click **Spawn traffic** in F8 or use `/mtsgps traffic start 3`. Move at least 18 blocks away from a clear recorded section and keep it loaded. Up to three villagers will drive randomly selected Mercedes, Mustang or Scout cars, with random paints and compatible parts installed. Use **Clear traffic** or `/mtsgps traffic stop` to remove them. The command accepts 1–8 cars, subject to the server's overall limit.
+
+Traffic follows recorded directed roads and chooses connected intersection branches. It uses actual MTS steering, engines and brakes. Cars stop for basic obstacles and at recorded road ends; replacements appear on other clear sections nearby. There are no traffic lights, overtaking or lane changes. For opposing traffic, record separate one-way lanes. Start with a wide road and gradual bends.
+
+**Traffic needs MTS GPS on the server too.** Single-player includes its server automatically. The single-player owner or a server operator can start traffic. GPS navigation remains usable with just a client installation. Starting traffic sends a temporary copy of recorded road coordinates to the server; saved destinations stay local. Traffic clears when its owner leaves and is not a permanent population system.
+
+GPS configuration is in `config/mtsgps-client.toml`, traffic limits/speed are in the server's `config/mtsgps-common.toml`, and recorded roads/destinations are in `config/mtsgps/data`.
 
 ## Alpha status and limits
 

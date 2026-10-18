@@ -2,6 +2,8 @@ package dev.mtsgps;
 
 import dev.mtsgps.nav.*;
 import dev.mtsgps.client.MtsBridge;
+import dev.mtsgps.traffic.TrafficPlan;
+import dev.mtsgps.traffic.TrafficControl;
 import minecrafttransportsimulator.baseclasses.Point3D;
 import minecrafttransportsimulator.baseclasses.RotationMatrix;
 import minecrafttransportsimulator.baseclasses.TransformationMatrix;
@@ -119,6 +121,55 @@ public final class NavigationTests {
         check(rejected,"Corrupt edge references rejected");
         rejected=false;try {RoadGraph.restore(List.of(new RoadGraph.Node(1,new Position(Double.NaN,0,0))),List.of());} catch(IllegalArgumentException expected){rejected=true;}
         check(rejected,"Non-finite coordinates rejected");
+        trafficChecks();
         System.out.println("MTS GPS: "+checks+" behavioral checks passed (no Minecraft runtime test).");
+    }
+    private static void trafficChecks() {
+        var road=new RoadGraph();
+        int a=road.add(p(0,0)),b=road.add(p(0,10)),c=road.add(p(0,20)),d=road.add(p(10,20));
+        road.connect(a,b,true); road.connect(b,c,true); road.connect(c,d,false);
+        var plan=new TrafficPlan(road,new RoadGraph.Edge(a,b),new Random(4));
+        var aim=plan.aim(p(0,0),5);
+        near(aim.position().z(),5,"Traffic lookahead follows the recorded edge");
+        near(aim.remaining(),30,"Traffic remaining distance follows the connected road");
+        near(plan.aim(p(0,15),8).position().x(),3,"Traffic lookahead follows the connected turn");
+        check(plan.aim(p(10,20),5).atEnd(),"Traffic stops at a directed road end without inventing a U-turn");
+        var reverse=new TrafficPlan(road,new RoadGraph.Edge(c,b),new Random(4));
+        check(reverse.aim(p(0,0),5).atEnd(),"Traffic can use an explicitly recorded reverse edge");
+        var oneWay=new RoadGraph(); int start=oneWay.add(p(0,0)),end=oneWay.add(p(0,20)); oneWay.connect(start,end,false);
+        boolean rejected=false;
+        try { new TrafficPlan(oneWay,new RoadGraph.Edge(end,start),new Random(4)); } catch(IllegalArgumentException expected) { rejected=true; }
+        check(rejected,"Traffic cannot start against a one-way edge");
+        var disconnected=new RoadGraph(); int s=disconnected.add(p(0,0)),e=disconnected.add(p(0,10)),x=disconnected.add(p(0,11)),y=disconnected.add(p(0,30));
+        disconnected.connect(s,e,false); disconnected.connect(x,y,false);
+        near(new TrafficPlan(disconnected,new RoadGraph.Edge(s,e),new Random(3)).aim(p(0,0),30).remaining(),10,"Traffic does not jump a recording gap");
+        var straight=new TrafficPlan.Aim(p(0,8),0,100,false);
+        var control=TrafficControl.drive(p(0,0),0,1,0,straight,3,4.5,false);
+        check(control.throttle()>0 && control.brake()==0,"Stopped traffic accelerates on a clear road");
+        near(control.rudder(),0,"Straight road keeps the steering centered");
+        var left=TrafficControl.drive(p(0,0),0,1,2,new TrafficPlan.Aim(p(5,5),0,100,false),3,4.5,false);
+        check(left.rudder()<0,"Positive MTS yaw needs negative rudder input");
+        var right=TrafficControl.drive(p(0,0),0,1,2,new TrafficPlan.Aim(p(-5,5),0,100,false),3,4.5,false);
+        check(right.rudder()>0,"Opposite corner reverses steering input");
+        check(left.desiredSpeed()<control.desiredSpeed(),"Traffic slows for turns");
+        var speeding=TrafficControl.drive(p(0,0),0,1,8,straight,3,4.5,false);
+        check(speeding.brake()>0 && speeding.throttle()==0,"Overspeed traffic brakes instead of accelerating");
+        var blocked=TrafficControl.drive(p(0,0),0,1,3,straight,3,4.5,true);
+        check(blocked.brake()==1 && blocked.throttle()==0,"Obstacles cause a full stop");
+        check(TrafficControl.drive(p(0,0),0,1,3,new TrafficPlan.Aim(p(0,8),8,100,false),3,4.5,false).brake()==1,"Traffic stops after leaving its recorded road");
+        check(TrafficControl.drive(p(0,0),0,1,3,new TrafficPlan.Aim(p(0,0),0,0,true),3,4.5,false).brake()==1,"Traffic brakes at the end of a road");
+        check(TrafficControl.ahead(p(0,0),0,1,p(1,7),10,2),"A car in the driving corridor is an obstacle");
+        check(!TrafficControl.ahead(p(0,0),0,1,p(0,-3),10,2),"A car behind does not block traffic");
+        check(!TrafficControl.ahead(p(0,0),0,1,p(4,7),10,2),"An adjacent road does not block traffic");
+        check(!TrafficControl.ahead(p(0,0),0,1,new Position(0,8,7),10,2),"A bridge above traffic does not block the road below");
+        var memory=new TrafficControl.BrakingMemory(); memory.observe(true,4);
+        near(memory.range(0),11.2,"Obstacle detection range does not shrink while stopping");
+        memory.observe(true,0); near(memory.range(0),11.2,"Stopped traffic keeps waiting for the same obstruction");
+        memory.observe(false,0); near(memory.range(0),6,"Obstacle detection resets when the corridor clears");
+        var junction=new RoadGraph(); int j0=junction.add(p(0,0)),j1=junction.add(p(0,10)),jl=junction.add(p(10,10)),jr=junction.add(p(-10,10));
+        junction.connect(j0,j1,true); junction.connect(j1,jl,false); junction.connect(j1,jr,false);
+        var choices=new HashSet<Double>();
+        for(int seed=0;seed<100;seed++) choices.add(new TrafficPlan(junction,new RoadGraph.Edge(j0,j1),new Random(seed*7919L)).aim(p(0,0),25).position().x());
+        check(choices.contains(-10d) && choices.contains(10d),"Traffic can randomly choose both recorded intersection branches");
     }
 }

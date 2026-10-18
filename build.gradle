@@ -15,6 +15,14 @@ base {
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+// Integration fixtures are development-only and are never included in the installable addon.
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
     // The mappings can be changed at any time and must be in the following format.
@@ -101,6 +109,9 @@ minecraft {
         // The gametest system is also enabled by default for other run configs under the /test command.
         gameTestServer {
             property 'forge.enabledGameTestNamespaces', mod_id
+            property 'forge.logging.console.level', 'info'
+            workingDirectory project.file('run-traffic-tests')
+            mods { "${mod_id}" { source sourceSets.gameTest } }
         }
 
         data {
@@ -259,3 +270,11 @@ tasks.withType(JavaExec).configureEach {
         dependsOn 'createSrgToMcp', 'stageMtsOfficialPack'
     }
 }
+
+// Keep integration-test worlds separate from the user's development world.
+tasks.register('stageTrafficTestPack', Copy) {
+    dependsOn 'stageMtsOfficialPack'
+    from project.layout.projectDirectory.file('run/mods/MTS Official Pack-1.20.1-V29.jar')
+    into project.layout.projectDirectory.dir('run-traffic-tests/mods')
+}
+tasks.matching { it.name == 'runGameTestServer' }.configureEach { dependsOn 'gameTestClasses', 'stageTrafficTestPack' }

@@ -1,4 +1,12 @@
-# MTS GPS 0.1.1 - Alpha
+# MTS GPS 0.2.0 - Alpha
+
+- Added optional villager traffic on recorded roads, with randomly chosen Mercedes, Mustang and Scout models/paints.
+- Traffic cars are assembled with real MTS engines, wheels and controller seats, and steer through MTS's vehicle physics.
+- Added F8 Spawn traffic / Clear traffic and `/mtsgps traffic start [1–8]` / `/mtsgps traffic stop`.
+- Added directed intersection choices, turn slowdown, basic obstacle braking, road-end handling and temporary-entity cleanup.
+- Added server permission checks, car/snapshot limits and configurable traffic speed. Traffic requires the addon on the server; single-player includes it automatically.
+
+## Included from 0.1.1
 
 - Replaced the ambiguous destination-save warning with specific messages for a missing name, missing map pin or invalid data.
 - Added a visible destination-name label and automatic name-box focus when selecting a map pin.
@@ -18,4 +26,4 @@ Initial development build for Minecraft 1.20.1 Forge, Immersive Vehicles 24.0.0 
 - Added per-world/server/dimension local data with backup recovery.
 - Corrected development mixin remapping and Official Pack discovery.
 
-Validation: Java 17 release build and 49 automated navigation/persistence checks passed. Development startup and test-world loading were verified for the previous build. The 0.1.1 destination-menu correction has been compiled but still requires in-game verification. Broader dashboard, route and speech testing remains pending.
+Validation: Java 17 release build, 73 behavioral checks and all 3 headless Minecraft traffic tests passed. Mustang, Mercedes and Scout each drove a recorded bend and stopped at the end; Mercedes also stopped for a real mob and resumed when it was removed. Client traffic controls/networking, visual driver alignment, broader dashboard/route/speech and multiplayer testing remain pending.

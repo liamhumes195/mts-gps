@@ -1,8 +1,8 @@
-# MTS GPS 0.1.1
+# MTS GPS 0.2.0
 
-A separate client-side Forge addon for the **MTS Official Pack V29 Mercedes `merc230`**, across every paint variant. It renders a physical dashboard screen, housing and support inside the vehicle. The map menu is an additional control panel.
+A separate Forge addon for the **MTS Official Pack V29 Mercedes `merc230`**, across every paint variant. It renders a physical dashboard screen, housing and support inside the vehicle. The map menu is an additional control panel. Optional server-side traffic puts villager drivers in random Official Pack Mercedes, Mustang and Scout cars on your recorded road network.
 
-**Status: compiled development candidate; development-client startup verified. Dashboard rendering, placement, driving and GPS speech playback have not been tested in a world.** The initial mount is based on the inspected pack geometry and requires the calibration check below. This is not a claim of a completed, in-game-validated dashboard GPS.
+**Status: alpha. Java 17 build, 73 behavioral checks and 3 headless Minecraft traffic tests passed.** Traffic's physical car assembly, villager seating, recorded bend, road-end braking, and mob-obstacle stop/resume have been tested on a Minecraft server. Dashboard placement/rendering, speech and the complete client traffic controls still need independent in-game acceptance. The initial mount is based on the inspected pack geometry and requires the calibration check below.
 
 ## Build and dependencies
 
@@ -36,18 +36,18 @@ $env:JAVA_HOME = 'C:\path\to\jdk-17'
 .\gradlew.bat build --console=plain
 ```
 
-Output: **`build/libs/mtsgps-0.1.1.jar`**, reobfuscated by ForgeGradle for installation.
+Output: **`build/libs/mtsgps-0.2.0.jar`**, reobfuscated by ForgeGradle for installation.
 
 `build` runs the executable behavioral suite through `gpsTest`. The standard JUnit `test` task is disabled because the suite uses an ordinary Java main. Run just the suite with `gradlew.bat gpsTest`. No Minecraft window is needed for these checks.
 
 ## Installation
 
 1. Close Minecraft.
-2. Remove any older MTS GPS addon JAR, then copy `build/libs/mtsgps-0.1.1.jar` into your Minecraft instance's `mods` folder.
+2. Remove any older MTS GPS addon JAR, then copy `build/libs/mtsgps-0.2.0.jar` into your Minecraft instance's `mods` folder.
 3. Keep the original Immersive Vehicles and Official Pack JARs there. Do not install any development/cache copies from this project.
 4. Start that Forge 1.20.1 instance with Java 17. Use a test world for the following checks.
 
-No server installation is required. Roads, destinations and navigation are local to each client; they are not shared between players.
+GPS navigation works with a client-only installation. **Traffic requires this addon on the server too**; single-player includes its server automatically. Roads and destinations remain local to each client. Starting traffic sends a snapshot of road nodes/edges to the server for that session; saved destinations are not sent.
 
 ## Staged Minecraft testing
 
@@ -73,6 +73,8 @@ Client commands:
 /mtsgps save Home        Save current car position as Home
 /mtsgps go Home          Route to Home
 /mtsgps stop             Stop navigation
+/mtsgps traffic start 3  Start up to three villager-driven traffic cars
+/mtsgps traffic stop     Remove your traffic and stop replacements
 ```
 
 Configuration: `config/mtsgps-client.toml`. Mount values also have live +/- controls; position/size step is 0.01 block and angle step is 1 degree. Reset mount restores the model-derived defaults. `spokenDirections` controls speech; `terrainMap` enables the sampled surface background; map radius and road snap/recalculation distances are configurable.
@@ -81,9 +83,20 @@ Roads and destinations: `config/mtsgps/data/<SHA-256 of world/server and dimensi
 
 Changes autosave every five seconds while in a world and when explicitly saving or stopping recording. Files use an atomic replacement where supported and retain a validated `.bak`. Invalid input is preserved; unrecoverable data disables editing rather than silently overwriting it. Network limits are 50,000 nodes, 150,000 directed edges and 1,000 destinations per world/dimension.
 
+## Villager traffic
+
+1. Record a connected road at least 40 blocks long, with gradual corners, then stop recording. For opposing traffic, record separate one-way lanes; the controller follows the recorded line and does not create lanes.
+2. Open F8 in the Mercedes and click **Spawn traffic**, or use `/mtsgps traffic start 3`. The count can be 1–8. Move at least 18 blocks away from a clear recorded section and keep it loaded; cars spawn 18–64 blocks away.
+3. Villagers drive randomly selected **merc230**, **fordmustang69** and **scout** models and paints, with compatible engines, wheels and controller seats installed. They steer and accelerate through MTS's actual physics and choose connected intersection branches randomly.
+4. Use **Clear traffic** or `/mtsgps traffic stop` to remove your generated cars/drivers. Traffic also clears when you leave the server or dimension. Operators can use `/mtsgpstraffic clear` to stop every active traffic session.
+
+The single-player owner or a server operator with permission level 2 can start traffic. Configure the server's `config/mtsgps-common.toml` to disable traffic, change its cruise speed (default 4.5 blocks/second), or adjust the total cars per dimension (default 12). Traffic uses no chunk tickets and does not generate roads. Road snapshots are limited to 4096 nodes and 12288 directed edges; start traffic again after editing recordings.
+
+This is basic traffic: cars brake for nearby vehicles, living entities, solid obstacles and liquids. Cars stop at recorded dead ends and are replaced on clear nearby road sections. Stuck cars are removed after 30 seconds. There are no traffic-light rules, overtaking, lane changes or parking logic. Narrow roads, sharp corners, competing opposing traffic and complicated intersections need testing. A player entering a traffic car pauses its controller. Traffic entities are temporary, marked separately from your vehicles, and stale traffic from a prior session is removed when loaded. See [docs/TRAFFIC.md](docs/TRAFFIC.md).
+
 ## Behavior and current limits
 
-* Routes use A* on recorded road edges, with Euclidean road length as cost. One block is spoken/displayed as one meter. There is no Minecraft walking pathfinder, inferred street network, traffic model or automatic road detection.
+* Routes use A* on recorded road edges, with Euclidean road length as cost. One block is spoken/displayed as one meter. There is no Minecraft walking pathfinder, inferred street network or automatic road detection.
 * Drive near the road center while recording. Samples default to 3 blocks apart and join an existing node/segment within 2 blocks, with a 1.25-block vertical limit. Manual junction connection uses 2.5 blocks by default. Closely parallel roads can join if recorded within this tolerance; lower `junctionSnapBlocks` for closely spaced lanes.
 * Dismounting, changing vehicles/drivers/dimensions, or a movement gap over 24 blocks stops recording. Stopping/restarting creates a separate segment unless it meets an existing road.
 * Route endpoints are projected onto a recorded road within 24 blocks and a 4-block height limit. Off-road portions are not included in the highlighted driving route. If a destination is farther than 8 blocks from the reached road end, the screen reports the remaining offset instead of declaring arrival.
@@ -95,9 +108,11 @@ Changes autosave every five seconds while in a world and when explicitly saving 
 
 ## Verification record
 
-The final Java 17 `build` and `reobfJar` succeeded, and **49 behavioral checks passed**. The checks exercise directed routes, shortest-road detours, edge-interior endpoints, segment splitting, explicit and automatic junctions, bridges, recording gaps, smooth/sharp turns, missed-turn rerouting, persistence recovery, malformed files and MTS/JOML transform agreement. See `docs/VERIFICATION.md` for the staged result.
+The final Java 17 `build` and `reobfJar` succeeded, and **73 behavioral checks passed**. These cover navigation/persistence/transforms plus directed traffic progression, random branches, steering/braking, bridge separation and obstacle-range retention while stopping. **All 3 Minecraft server GameTests passed**: Mustang, Mercedes and Scout followed a recorded bend and stopped at the road end with a real villager driver. The Mercedes also stopped for a real mob and resumed after it was removed. See `docs/VERIFICATION.md` for the evidence and limits.
 
-**Startup smoke test passed:** the Java 17 development client remapped MTS's mixins, loaded MTS GPS and the two target mods, initialized resources/sound, and opened its Minecraft window. **Not tested in a Minecraft world:** physical placement/occlusion, vehicle/camera motion, all paint variants, terrain appearance, UI interaction while driving, GPS speech output and multiplayer behavior. Until the staged checks above pass, treat the JAR as an installable development build requiring in-game acceptance.
+Run the integration tests with `gradlew.bat runGameTestServer`. Their world is isolated under `run-traffic-tests`; fixtures under `src/gameTest` are excluded from the installable JAR. Natural mob spawning is disabled for the test batch and restored afterward so incidental mobs do not obstruct its fixed course.
+
+**Earlier client startup smoke test passed:** the Java 17 development client remapped MTS's mixins, loaded MTS GPS and the two target mods, initialized resources/sound, and opened its Minecraft window. **Still awaiting independent client verification:** physical GPS placement/occlusion, vehicle/camera motion, all paint variants, terrain appearance, UI interaction while driving, GPS speech output, traffic network/menu controls and multiplayer behavior. The headless traffic tests do not validate rendering or the user's world.
 
 ## Development launch troubleshooting
 

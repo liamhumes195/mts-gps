@@ -5,6 +5,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.mtsgps.GpsConfig;
 import dev.mtsgps.MtsGps;
 import dev.mtsgps.nav.*;
+import dev.mtsgps.traffic.TrafficNetwork;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -62,6 +64,10 @@ public final class GpsClient {
                 .then(literal("save").then(argument("name",StringArgumentType.greedyString()).executes(c->{INSTANCE.saveCarHere(StringArgumentType.getString(c,"name"));return 1;})))
                 .then(literal("go").then(argument("name",StringArgumentType.greedyString()).executes(c->{String name=StringArgumentType.getString(c,"name"); INSTANCE.navigate(name,INSTANCE.destinations.get(name));return 1;})))
                 .then(literal("stop").executes(c->{INSTANCE.stopRoute();return 1;}))
+                .then(literal("traffic")
+                        .then(literal("start").executes(c->{INSTANCE.traffic(3);return 1;})
+                                .then(argument("cars",IntegerArgumentType.integer(1,8)).executes(c->{INSTANCE.traffic(IntegerArgumentType.getInteger(c,"cars"));return 1;})))
+                        .then(literal("stop").executes(c->{INSTANCE.traffic(0);return 1;})))
                 .then(literal("test").executes(c->{GpsConfig.TEST.set(!GpsConfig.TEST.get());GpsConfig.SPEC.save();return 1;})));
     }
     public void open() {
@@ -154,6 +160,23 @@ public final class GpsClient {
         var car=MtsBridge.car();
         if(car==null) { message("Sit in an Official Pack merc230 before saving the car location"); return; }
         saveDestination(name,new Position(car.position.x,car.position.y,car.position.z));
+    }
+    public void traffic(int count) {
+        var mc=Minecraft.getInstance();
+        if(mc.level==null || mc.getConnection()==null) return;
+        if(!TrafficNetwork.CHANNEL.isRemotePresent(mc.getConnection().getConnection())) {
+            message("Traffic requires MTS GPS 0.2.0 on the server (single-player includes it)"); return;
+        }
+        if(count>0) {
+            if(recorder.active()) { message("Stop road recording before starting traffic"); return; }
+            if(loadFailed || graph.edges().isEmpty()) { message("Record and save connected roads before starting traffic"); return; }
+            if(graph.nodes().size()>TrafficNetwork.MAX_NODES || graph.edges().size()>TrafficNetwork.MAX_EDGES) {
+                message("Traffic supports up to 4096 road nodes and 12288 directed edges"); return;
+            }
+            if(!flush()) return;
+        }
+        TrafficNetwork.CHANNEL.sendToServer(new TrafficNetwork.Request(mc.level.dimension().location(),count,count==0?null:graph.copy()));
+        message(count==0?"Requested removal of your traffic cars":"Requested "+count+" villager drivers on recorded roads");
     }
     public void saveDestination(String name,Position where) {
         if(loadFailed) { message("GPS data could not be read; destinations cannot be saved"); return; }

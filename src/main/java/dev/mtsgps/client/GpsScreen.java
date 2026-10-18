@@ -42,6 +42,8 @@ public final class GpsScreen extends Screen {
         button("Test voice",panelX+half+4,164,half,gps::testSpeech);
         button("Mount settings",panelX,186,half,()->minecraft.setScreen(new MountScreen(this)));
         button("Close",panelX+half+4,186,half,this::onClose);
+        button("Spawn traffic",panelX,208,half,()->gps.traffic(3));
+        button("Clear traffic",panelX+half+4,208,half,()->gps.traffic(0));
         setInitialFocus(name);
     }
     private void button(String title,int x,int y,int w,Runnable action) {
@@ -75,7 +77,7 @@ public final class GpsScreen extends Screen {
         g.drawString(font,"Click map to place a destination pin",mapX,infoY,0xffb7c6ce);
         g.drawString(font,gps.graph.nodes().size()+" nodes / "+gps.graph.edges().size()+" directed edges",mapX,infoY+12,0xffb7c6ce);
         g.drawString(font,gps.speechStatus(),mapX,infoY+24,0xffb7c6ce);
-        g.drawString(font,font.plainSubstrByWidth(gps.status,width-24),12,height-16,0xffffffff);
+        g.drawString(font,font.plainSubstrByWidth(gps.status,width-24),12,height-10,0xffffffff);
         super.render(g,mouseX,mouseY,partial);
     }
     @Override public boolean isPauseScreen() { return false; }
