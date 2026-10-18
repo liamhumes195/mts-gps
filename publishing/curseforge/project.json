@@ -10,8 +10,8 @@
   "logo": "icon.png",
   "description": "description.md",
   "release": {
-    "displayName": "MTS GPS 0.1.0 - Alpha",
-    "fileName": "mtsgps-0.1.0.jar",
+    "displayName": "MTS GPS 0.1.1 - Alpha",
+    "fileName": "mtsgps-0.1.1.jar",
     "releaseType": "alpha",
     "minecraftVersions": ["1.20.1"],
     "modLoaders": ["Forge"],

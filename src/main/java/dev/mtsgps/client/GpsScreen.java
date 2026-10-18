@@ -18,14 +18,15 @@ public final class GpsScreen extends Screen {
     private float scale;
     public GpsScreen() { super(Component.literal("MTS GPS")); }
     @Override protected void init() {
+        String draftName=name==null?selection():name.getValue();
         mapX=12; mapY=32;
         scale=(float)Math.min(1,Math.min((width-230)/256d,(height-90)/192d));
         scale=Math.max(.3f,scale);
         panelX=mapX+(int)(256*scale)+12; panelWidth=width-panelX-12;
         int half=(panelWidth-4)/2;
         name=new EditBox(font,panelX,32,panelWidth,18,Component.literal("Destination name"));
-        name.setMaxLength(64); name.setHint(Component.literal("Destination name")); addRenderableWidget(name);
-        button("Save car here",panelX,54,half,()->gps.saveDestination(name.getValue(),gps.position));
+        name.setMaxLength(64); name.setHint(Component.literal("e.g. Home")); name.setValue(draftName); addRenderableWidget(name);
+        button("Save car here",panelX,54,half,()->gps.saveCarHere(name.getValue()));
         button("Save map pin",panelX+half+4,54,half,()->gps.saveDestination(name.getValue(),gps.picked));
         button("<",panelX,76,22,()->{selected--; refreshName();});
         button("Next saved >",panelX+26,76,panelWidth-26,()->{selected++;refreshName();});
@@ -41,7 +42,7 @@ public final class GpsScreen extends Screen {
         button("Test voice",panelX+half+4,164,half,gps::testSpeech);
         button("Mount settings",panelX,186,half,()->minecraft.setScreen(new MountScreen(this)));
         button("Close",panelX+half+4,186,half,this::onClose);
-        refreshName();
+        setInitialFocus(name);
     }
     private void button(String title,int x,int y,int w,Runnable action) {
         addRenderableWidget(Button.builder(Component.literal(title),b->action.run()).bounds(x,y,w,20).build());
@@ -57,7 +58,8 @@ public final class GpsScreen extends Screen {
             Position raw=GpsMapTexture.INSTANCE.pick(tx,ty,gps.position);
             var snap=gps.graph.nearest(raw,12,4);
             gps.picked=snap==null?raw:snap.position();
-            gps.message("Map pin: "+Math.round(gps.picked.x())+", "+Math.round(gps.picked.z())+" - name and save it");
+            setFocused(name);
+            gps.message("Map pin: "+Math.round(gps.picked.x())+", "+Math.round(gps.picked.z())+" - type a name, then click Save map pin");
             return true;
         }
         return super.mouseClicked(x,y,button);
@@ -65,6 +67,7 @@ public final class GpsScreen extends Screen {
     @Override public void render(GuiGraphics g,int mouseX,int mouseY,float partial) {
         renderBackground(g);
         g.drawString(font,"MTS GPS - Mercedes merc230",12,12,0xff66e5d6);
+        g.drawString(font,"Destination name",panelX,22,0xffb7c6ce);
         g.pose().pushPose(); g.pose().translate(mapX,mapY,0); g.pose().scale(scale,scale,1);
         g.blit(GpsMapTexture.INSTANCE.location(),0,0,0,0,256,192,256,192);
         g.pose().popPose();

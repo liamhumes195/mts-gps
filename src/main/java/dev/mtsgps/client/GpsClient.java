@@ -59,7 +59,7 @@ public final class GpsClient {
                 .executes(c->{ INSTANCE.open(); return 1; })
                 .then(literal("record").executes(c->{INSTANCE.toggleRecording();return 1;}))
                 .then(literal("junction").executes(c->{INSTANCE.junction();return 1;}))
-                .then(literal("save").then(argument("name",StringArgumentType.greedyString()).executes(c->{INSTANCE.saveDestination(StringArgumentType.getString(c,"name"),INSTANCE.position);return 1;})))
+                .then(literal("save").then(argument("name",StringArgumentType.greedyString()).executes(c->{INSTANCE.saveCarHere(StringArgumentType.getString(c,"name"));return 1;})))
                 .then(literal("go").then(argument("name",StringArgumentType.greedyString()).executes(c->{String name=StringArgumentType.getString(c,"name"); INSTANCE.navigate(name,INSTANCE.destinations.get(name));return 1;})))
                 .then(literal("stop").executes(c->{INSTANCE.stopRoute();return 1;}))
                 .then(literal("test").executes(c->{GpsConfig.TEST.set(!GpsConfig.TEST.get());GpsConfig.SPEC.save();return 1;})));
@@ -150,9 +150,18 @@ public final class GpsClient {
         try { recorder.junction(graph,position,GpsConfig.SNAP.get()+.5); dirty=true; flush(); message("Connected same-height road segments at this intersection"); }
         catch(RuntimeException failure) { message(failure.getMessage()); }
     }
+    public void saveCarHere(String name) {
+        var car=MtsBridge.car();
+        if(car==null) { message("Sit in an Official Pack merc230 before saving the car location"); return; }
+        saveDestination(name,new Position(car.position.x,car.position.y,car.position.z));
+    }
     public void saveDestination(String name,Position where) {
-        name=name.strip();
-        if(loadFailed || where==null || !where.valid() || name.isEmpty() || name.length()>64) { message("Use a destination name of 1 to 64 characters and valid data"); return; }
+        if(loadFailed) { message("GPS data could not be read; destinations cannot be saved"); return; }
+        if(where==null) { message("Click inside the map to place a pin before clicking Save map pin"); return; }
+        if(!where.valid()) { message("Destination position is outside the supported world bounds"); return; }
+        name=name==null?"":name.strip();
+        if(name.isEmpty()) { message("Type a destination name in the box above the Save buttons"); return; }
+        if(name.length()>64) { message("Destination name must be 64 characters or fewer"); return; }
         if(destinations.size()>=1000 && !destinations.containsKey(name)) { message("Destination limit reached"); return; }
         destinations.put(name,where); dirty=true; if(flush()) message("Saved destination: "+name);
     }

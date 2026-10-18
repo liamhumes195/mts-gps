@@ -1,4 +1,4 @@
-# MTS GPS 0.1.0
+# MTS GPS 0.1.1
 
 A separate client-side Forge addon for the **MTS Official Pack V29 Mercedes `merc230`**, across every paint variant. It renders a physical dashboard screen, housing and support inside the vehicle. The map menu is an additional control panel.
 
@@ -36,14 +36,14 @@ $env:JAVA_HOME = 'C:\path\to\jdk-17'
 .\gradlew.bat build --console=plain
 ```
 
-Output: **`build/libs/mtsgps-0.1.0.jar`**, reobfuscated by ForgeGradle for installation.
+Output: **`build/libs/mtsgps-0.1.1.jar`**, reobfuscated by ForgeGradle for installation.
 
 `build` runs the executable behavioral suite through `gpsTest`. The standard JUnit `test` task is disabled because the suite uses an ordinary Java main. Run just the suite with `gradlew.bat gpsTest`. No Minecraft window is needed for these checks.
 
 ## Installation
 
 1. Close Minecraft.
-2. Copy only `build/libs/mtsgps-0.1.0.jar` into your Minecraft instance's `mods` folder.
+2. Remove any older MTS GPS addon JAR, then copy `build/libs/mtsgps-0.1.1.jar` into your Minecraft instance's `mods` folder.
 3. Keep the original Immersive Vehicles and Official Pack JARs there. Do not install any development/cache copies from this project.
 4. Start that Forge 1.20.1 instance with Java 17. Use a test world for the following checks.
 
@@ -60,6 +60,8 @@ No server installation is required. Roads, destinations and navigation are local
 ## Controls and data
 
 F8 opens the control menu while seated in a target Mercedes. Click the map to place a pin (snapped to a nearby recorded road when possible), name it, save it, and navigate to the saved entry. Recording requires the **driver** seat. Stop a recording before switching between two-way and one-way.
+
+To save a destination, type a name such as `Home` in the **Destination name** box, then choose **Save car here** for your current location or **Save map pin** after clicking inside the map. Clicking the map focuses the name box. Your typed name survives road-control refreshes and window resizing. The shortcut `/mtsgps save Home` saves the current Mercedes location. If saving fails, the message identifies a missing name, missing pin or a data problem separately.
 
 Client commands:
 
