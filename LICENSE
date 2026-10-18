@@ -1,0 +1,14 @@
+MTS GPS
+Copyright (c) 2026 MTS GPS contributors.
+All rights reserved.
+
+This notice applies to the original MTS GPS addon source, documentation and
+project artwork. Publishing this repository does not grant permission to
+redistribute, sublicense or reuse those materials without the authors' consent.
+
+Third-party materials retain their own licenses. The Forge MDK notices and
+license are preserved in LICENSE.txt and CREDITS.txt. The Gradle wrapper scripts
+retain their original Apache License 2.0 notices.
+
+Immersive Vehicles and MTS Official Content Pack are separate third-party
+dependencies and are not distributed in this repository.

@@ -1,0 +1,36 @@
+{
+  "status": "prepared_locally_not_submitted",
+  "name": "MTS GPS",
+  "suggestedSlug": "mts-gps",
+  "summary": "Dashboard GPS for the Official Pack Mercedes, with recorded roads, saved destinations and spoken navigation.",
+  "game": "Minecraft",
+  "projectType": "Mods",
+  "suggestedCategories": ["Map and Information", "Addons", "Player Transport"],
+  "license": "All Rights Reserved",
+  "logo": "icon.png",
+  "description": "description.md",
+  "release": {
+    "displayName": "MTS GPS 0.1.0 - Alpha",
+    "fileName": "mtsgps-0.1.0.jar",
+    "releaseType": "alpha",
+    "minecraftVersions": ["1.20.1"],
+    "modLoaders": ["Forge"],
+    "javaVersions": [17],
+    "environment": "Client",
+    "changelog": "changelog.md",
+    "requiredProjects": [
+      {
+        "projectID": 286703,
+        "slug": "minecraft-transport-simulator",
+        "version": "1.20.1-24.0.0",
+        "url": "https://www.curseforge.com/minecraft/mc-mods/minecraft-transport-simulator"
+      },
+      {
+        "projectID": 292217,
+        "slug": "transport-simulator-official-vehicle-set",
+        "version": "1.20.1-V29",
+        "url": "https://www.curseforge.com/minecraft/mc-mods/transport-simulator-official-vehicle-set"
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
+  <title id="title">MTS GPS</title>
+  <desc id="desc">Original project icon showing a dashboard navigation screen, a teal road route and a destination pin. This is an illustration, not a Minecraft screenshot.</desc>
+  <rect width="400" height="400" rx="64" fill="#0e1726"/>
+  <rect x="32" y="38" width="336" height="250" rx="24" fill="#1b3044" stroke="#35526c" stroke-width="4"/>
+  <rect x="52" y="58" width="296" height="210" rx="12" fill="#10212f"/>
+  <g stroke="#35526c" stroke-width="9" fill="none" stroke-linecap="round">
+    <path d="M68 106h260M68 164h260M68 222h260"/>
+    <path d="M100 78v170M174 78v170M274 78v170"/>
+  </g>
+  <path d="M88 222h58v-58h104v-60" fill="none" stroke="#44e5c0" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M250 114c-10-14-26-29-26-43a26 26 0 0 1 52 0c0 14-16 29-26 43z" fill="#ffcd63"/>
+  <circle cx="250" cy="71" r="9" fill="#10212f"/>
+  <path d="M106 222l-30-15 5 15-5 15z" fill="#ffffff" stroke="#10212f" stroke-width="3" stroke-linejoin="round"/>
+  <text x="200" y="356" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-weight="700" font-size="46" letter-spacing="2" fill="#edf5ff">MTS GPS</text>
+</svg>
